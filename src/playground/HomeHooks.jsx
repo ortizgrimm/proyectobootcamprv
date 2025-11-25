@@ -30,12 +30,47 @@ function Homehooks() {
           <tr>
             <td>useNavigate</td>
             <td>
-              <Link to="/navegacion" className="btn btn-primary btn-sm">
+              <Link to="/usenavigate" className="btn btn-primary btn-sm">
                 Ir a ejemplo
               </Link>
             </td>
             <td>Hook para navegación con React Router.</td>
             <td>Navegación</td>
+          </tr>
+
+
+          <tr>
+            <td>UseEffect</td>
+            <td>
+              <Link to="/useeffect" className="btn btn-primary btn-sm">
+                Ir a ejemplo
+              </Link>
+            </td>
+            <td>Este componente aumenta un contador y muestra en consola cuándo se ejecuta el useEffect.</td>
+            <td>Efectos</td>
+          </tr>
+
+          <tr>
+            <td>UseLayoutEffect</td>
+            <td>
+              <Link to="/uselayouteffect" className="btn btn-primary btn-sm">
+                Ir a ejemplo
+              </Link>
+            </td>
+            <td>se ejecuta antes que el navegador pinte la pantalla → ideal para cálculos del layout.</td>
+            <td>Efectos</td>
+          </tr>
+
+
+           <tr>
+            <td>UseTransition</td>
+            <td>
+              <Link to="/usetransition" className="btn btn-primary btn-sm">
+                Ir a ejemplo
+              </Link>
+            </td>
+            <td>sirve para marcar ciertas actualizaciones como no urgentes, permitiendo que la UI siga respondiendo mientras se hace el trabajo.</td>
+            <td>cRenderizado y Transiciones</td>
           </tr>
 
           <tr>
@@ -48,6 +83,7 @@ function Homehooks() {
             <td>descripcion del hook.</td>
             <td>categoria</td>
           </tr>
+
         </tbody>
       </table>
 

@@ -1,4 +1,5 @@
 import{useState } from "react"
+import { Link} from "react-router-dom";
 function Contador() {
 
     const [count, setCount] = useState(0);
@@ -12,6 +13,7 @@ function aumentar(){
 function disminuir(){
     setCount(count-1);
 }
+
     return (
         <div className="container text-center">
             <h1>Contador: {count}</h1>
@@ -37,6 +39,8 @@ function disminuir(){
                 <button className="btn btn-secondary" onClick={()=> setColor("orange")}>Naranja</button>
                 <button className="btn btn-secondary" onClick={()=> setColor("white")}>Blanco</button>
             </div>
+            <br />
+            <Link to="/hooks">Ir a home hooks</Link>
             
         </div>
     );

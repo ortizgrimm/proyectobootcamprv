@@ -8,7 +8,10 @@ import Resetpage from './pages/Resetpage/Resetpage'
 import DashboardPage from './pages/Dashboard/DashboardPage';
 import HomeHooks from './playground/HomeHooks';
 import HookUseState from './playground/HookUseState';
-// import HookUseNavigate from './playground/HookUseNavigate';
+import HookUseNavigate from './playground/HookUseNavigate';
+import UseEffect from "./playground/UseEffect";
+import UseLayoutEffect from "./playground/UseLayoutEffect";
+import UseTransition from "./playground/UseTransition.jsx";
 function App() {
   
   return (
@@ -24,7 +27,10 @@ function App() {
       {/* Rutas de playground para hooks */}
       <Route path="/hooks" element={<HomeHooks />}/>
       <Route path="/usestate" element={<HookUseState />}/>
-      {/* <Route path="/usenavigate" element={<HookUseNavigate />}/> */}
+      <Route path="/usenavigate" element={<HookUseNavigate />}/> 
+      <Route path="/useeffect" element={<UseEffect />}/> 
+      <Route path="/uselayouteffect" element={<UseLayoutEffect />}/> 
+      <Route path="/usetransition" element={<UseTransition />}/> 
     </Routes>
     </BrowserRouter>
   )
