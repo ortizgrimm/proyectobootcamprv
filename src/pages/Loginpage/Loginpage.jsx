@@ -1,4 +1,5 @@
 import { useState } from "react";
+import {Link} from "react-router-dom";
 
 function Loginpage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -58,12 +59,9 @@ function Loginpage() {
 
         {/* Enlaces */}
         <div className="text-center">
-          <a href="olvide_contraseña.html" className="d-block">
-            ¿Olvidaste tu contraseña?
-          </a>
-          <a href="registro.html" className="d-block">
-            ¿No tienes una cuenta? Regístrate aquí
-          </a>
+            <Link to="/forgot">¿Olvidaste tu contraseña?</Link>
+            <br />
+           <Link to="/register">¿No tienes una cuenta? Regístrate aquí</Link>
         </div>
       </div>
     </div>

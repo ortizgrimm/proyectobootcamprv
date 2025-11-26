@@ -1,4 +1,5 @@
 import { useState } from "react";
+import {Link} from "react-router-dom";
 
 function Loginpage() {
   const [showPass1, setShowPass1] = useState(false);
@@ -137,9 +138,7 @@ function Loginpage() {
 
         {/* Enlace login */}
         <div className="text-center">
-          <a href="inicio_sesion.html" className="d-block">
-            ¿Ya tienes una cuenta? Inicia sesión
-          </a>
+         <Link to="/login">¿Ya tienes una cuenta? Inicia sesión</Link>
         </div>
       </div>
     </div>
