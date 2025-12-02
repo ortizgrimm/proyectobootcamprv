@@ -3,8 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 // Firebase
-import { auth } from "../../firebase";
-import { signInWithEmailAndPassword } from "firebase/auth/web-extension";
+import { auth, googleProvider } from "../../firebase";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -50,7 +50,6 @@ function LoginPage() {
         timer: 2000,
       });
 
-      // REDIRECCIONAR
       navigate("/dashboard");
 
     } catch (err) {
@@ -62,13 +61,38 @@ function LoginPage() {
     }
   };
 
+  // LOGIN CON GOOGLE
+  const loginWithGoogle = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+
+      Swal.fire({
+        icon: "success",
+        title: "¡Bienvenido!",
+        text: `Has iniciado sesión como ${result.user.email}`,
+        timer: 1800,
+        showConfirmButton: false,
+      });
+
+      navigate("/dashboard");
+
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo iniciar sesión con Google.",
+      });
+
+      console.error(error);
+    }
+  };
+
   return (
     <div className="container d-flex justify-content-center align-items-center vh-100">
       <div className="card p-4 shadow" style={{ width: "380px" }}>
         <h3 className="text-center mb-3">Iniciar Sesión</h3>
 
         <form onSubmit={handleSubmit}>
-
           {/* Email */}
           <div className="mb-3">
             <label className="form-label">Correo electrónico</label>
@@ -109,7 +133,17 @@ function LoginPage() {
             </div>
           </div>
 
+          {/* Botón login */}
           <button className="btn btn-primary w-100">Ingresar</button>
+
+          {/* Botón Google */}
+          <button
+            type="button"
+            className="btn btn-danger w-100 mt-3"
+            onClick={loginWithGoogle}
+          >
+            Iniciar sesión con Google
+          </button>
         </form>
 
         <div className="text-center mt-3 d-flex flex-column">
