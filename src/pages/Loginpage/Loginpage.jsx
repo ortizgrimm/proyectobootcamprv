@@ -1,71 +1,130 @@
 import { useState } from "react";
-import {Link} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
-function Loginpage() {
+// Firebase
+import { auth } from "../../firebase";
+import { signInWithEmailAndPassword } from "firebase/auth/web-extension";
+
+function LoginPage() {
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
   const [showPassword, setShowPassword] = useState(false);
 
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const { email, password } = form;
+
+    // VALIDACIONES
+    if (!email || !password) {
+      Swal.fire({
+        icon: "warning",
+        title: "Campos incompletos",
+        text: "Por favor ingresa tu correo y contraseña.",
+      });
+      return;
+    }
+
+    try {
+      // LOGIN FIREBASE
+      await signInWithEmailAndPassword(auth, email, password);
+
+      Swal.fire({
+        icon: "success",
+        title: "Bienvenido",
+        text: "Inicio de sesión exitoso.",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+
+      // REDIRECCIONAR
+      navigate("/dashboard");
+
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error al iniciar sesión",
+        text: "Correo o contraseña incorrectos.",
+      });
+    }
+  };
+
   return (
-    <div
-      className="container d-flex justify-content-center align-items-center"
-      style={{ minHeight: "100vh" }}
-    >
-      <div
-        className="card shadow p-4 d-flex flex-column justify-content-between"
-        style={{ maxWidth: "400px", width: "100%", height: "550px" }}
-      >
-        <h3 className="text-center mb-4">Iniciar Sesión</h3>
+    <div className="container d-flex justify-content-center align-items-center vh-100">
+      <div className="card p-4 shadow" style={{ width: "380px" }}>
+        <h3 className="text-center mb-3">Iniciar Sesión</h3>
 
-        {/* Campo Email */}
-        <div className="mb-3">
-          <label className="form-label fw-bold">Correo electrónico</label>
-          <input
-            type="email"
-            className="form-control"
-            placeholder="ejemplo@gmail.com"
-          />
-        </div>
+        <form onSubmit={handleSubmit}>
 
-        {/* Campo Contraseña + botón ver */}
-        <div className="mb-3">
-          <label className="form-label fw-bold">Contraseña</label>
-          <div className="input-group">
+          {/* Email */}
+          <div className="mb-3">
+            <label className="form-label">Correo electrónico</label>
             <input
-              type={showPassword ? "text" : "password"}
+              type="email"
+              name="email"
               className="form-control"
-              placeholder="Ingresa tu contraseña"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="ejemplo@gmail.com"
             />
-            <button
-              className="btn btn-outline-secondary-bg"
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              👁️
-            </button>
           </div>
+
+          {/* Password */}
+          <div className="mb-3">
+            <label className="form-label">Contraseña</label>
+
+            <div className="input-group">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                className="form-control"
+                value={form.password}
+                onChange={handleChange}
+                placeholder="****"
+              />
+
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                <i
+                  className={showPassword ? "bi bi-eye-slash" : "bi bi-eye"}
+                  style={{ fontSize: "1.2rem" }}
+                ></i>
+              </button>
+            </div>
+          </div>
+
+          <button className="btn btn-primary w-100">Ingresar</button>
+        </form>
+
+        <div className="text-center mt-3 d-flex flex-column">
+          <Link to="/forgot" className="text-decoration-none mb-2">
+            ¿Olvidaste tu contraseña?
+          </Link>
+
+          <Link to="/register" className="text-decoration-none">
+            Crear una cuenta
+          </Link>
         </div>
 
-        {/* Botón Iniciar Sesión */}
-        <button className="btn btn-primary w-100 mb-2">Iniciar Sesión</button>
-
-        {/* Botón Google */}
-        <button className="btn btn-outline-Emphasis w-100 mb-3">
-          <img
-            src="https://rotulosmatesanz.com/wp-content/uploads/2017/09/2000px-Google_G_Logo.svg_.png"
-            width="20"
-            className="me-2"
-          />
-          Iniciar sesión con Google
-        </button>
-
-        {/* Enlaces */}
-        <div className="text-center">
-            <Link to="/forgot">¿Olvidaste tu contraseña?</Link>
-            <br />
-           <Link to="/register">¿No tienes una cuenta? Regístrate aquí</Link>
-        </div>
       </div>
     </div>
   );
 }
 
-export default Loginpage;
+export default LoginPage;

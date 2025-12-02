@@ -1,60 +1,67 @@
 import { useState } from "react";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "../../firebase";  // AJUSTA la ruta según tu proyecto
+import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
 
-function Loginpage() {
+function ForgotPage() {
   const [email, setEmail] = useState("");
-  const [alertMessage, setAlertMessage] = useState(null);
-  const [alertType, setAlertType] = useState("");
+  const navigate = useNavigate();
 
-  const handleReset = () => {
-    if (!email.trim()) {
-      setAlertMessage("⚠️ Debes ingresar tu correo electrónico.");
-      setAlertType("danger");
-      return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+
+      Swal.fire({
+        icon: "success",
+        title: "Correo enviado",
+        text: "Revisa tu correo para restablecer tu contraseña.",
+      }).then(() => {
+        navigate("/"); // ⬅️ Redirección al login
+      });
+
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No pudimos enviar el correo. Verifica que esté registrado.",
+      });
     }
-
-    setAlertMessage(
-      "✔ Si tu correo está registrado, recibirás un enlace para restablecer tu contraseña."
-    );
-    setAlertType("success");
   };
 
   return (
-    <div
-  className="d-flex justify-content-center align-items-center"
-  style={{ minHeight: "100vh", backgroundColor: "white" }}
-    >
-      <div className="card shadow p-4" style={{ maxWidth: "400px", width: "100%" }}>
-        <h3 className="text-center mb-4 fw-bold">Recuperar Contraseña</h3>
+    <div className="container d-flex justify-content-center align-items-center vh-100">
+      <div className="card p-4 shadow" style={{ width: "380px" }}>
+        <h3 className="text-center mb-3">Recuperar Contraseña</h3>
 
-        {/* ALERTA */}
-        {alertMessage && (
-          <div className={`alert alert-${alertType}`}>{alertMessage}</div>
-        )}
+        <p className="text-muted text-center">
+          Ingresa tu correo y te enviaremos un enlace para recuperar tu contraseña.
+        </p>
 
-        {/* CAMPO EMAIL */}
-        <div className="mb-3">
-          <label className="form-label fw-bold">Correo electrónico</label>
-          <input
-            type="email"
-            className="form-control"
-            placeholder="ejemplo@gmail.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label className="form-label">Correo electrónico</label>
+            <input 
+              type="email"
+              className="form-control"
+              placeholder="ejemplo@gmail.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-        {/* BOTÓN */}
-        <button className="btn btn-primary w-100 mb-3" onClick={handleReset}>
-          Enviar enlace de recuperación
-        </button>
+          <button className="btn btn-warning w-100">Enviar enlace</button>
+        </form>
 
-        {/* VOLVER */}
-        <div className="text-center">
-          <a href="/login">Volver al inicio de sesión</a>
+        <div className="text-center mt-3">
+          <a href="/">Volver al login</a>
         </div>
       </div>
     </div>
   );
 }
 
-export default Loginpage;
+export default ForgotPage;

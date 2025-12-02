@@ -1,148 +1,232 @@
 import { useState } from "react";
-import {Link} from "react-router-dom";
+import Swal from "sweetalert2";
+import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-function Loginpage() {
-  const [showPass1, setShowPass1] = useState(false);
-  const [showPass2, setShowPass2] = useState(false);
-  const [alertMsg, setAlertMsg] = useState("");
+// --- Firebase ---
+import { auth, db } from "../../firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth/web-extension";
+import { doc, setDoc } from "firebase/firestore";
 
-  const handleRegister = () => {
-    const nombre = document.getElementById("nombre").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const pass1 = document.getElementById("passwordRegister").value.trim();
-    const pass2 = document.getElementById("passwordConfirm").value.trim();
+function RegisterPage() {
+  const navigate = useNavigate();
 
-    setAlertMsg(""); // limpiar mensajes
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    repeatPassword: "",
+  });
 
-    if (!nombre || !email || !pass1 || !pass2) {
-      setAlertMsg(
-        `<div class="alert alert-danger" role="alert">
-          ⚠️ Todos los campos son obligatorios.
-        </div>`
-      );
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const { name, email, password, repeatPassword } = form;
+
+    // VALIDACIONES
+    if (!name || !email || !password || !repeatPassword) {
+      Swal.fire({
+        icon: "warning",
+        title: "Campos incompletos",
+        text: "Todos los campos son obligatorios.",
+      });
       return;
     }
 
-    if (pass1 !== pass2) {
-      setAlertMsg(
-        `<div class="alert alert-danger" role="alert">
-          ❌ Las contraseñas no coinciden.
-        </div>`
-      );
+    if (password.length < 6) {
+      Swal.fire({
+        icon: "error",
+        title: "Contraseña muy corta",
+        text: "Debe tener al menos 6 caracteres.",
+      });
       return;
     }
 
-    setAlertMsg(
-      `<div class="alert alert-success" role="alert">
-        ✔ Registro exitoso.
-      </div>`
-    );
+    if (password !== repeatPassword) {
+      Swal.fire({
+        icon: "error",
+        title: "Contraseñas no coinciden",
+        text: "Por favor verifica las contraseñas.",
+      });
+      return;
+    }
+
+    try {
+      // Crear usuario
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      const user = userCredential.user;
+
+      // Guardar usuario en Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        name,
+        email,
+        createdAt: new Date(),
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Registro exitoso",
+        text: "Usuario registrado correctamente.",
+        showConfirmButton: false,
+        timer: 2000,
+      }).then(() => {
+        navigate("/");  
+      });
+
+      // Limpiar
+      setForm({
+        name: "",
+        email: "",
+        password: "",
+        repeatPassword: "",
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error en el registro",
+        text: err.message,
+      });
+    }
+  };
+
+  // Indicador de fortaleza
+  const passwordStrength = () => {
+    const len = form.password.length;
+    if (!len) return "";
+    if (len < 4) return "Débil";
+    if (len < 8) return "Media";
+    return "Fuerte";
+  };
+
+  const strengthColor = () => {
+    const len = form.password.length;
+    if (!len) return "";
+    if (len < 4) return "text-danger";
+    if (len < 8) return "text-warning";
+    return "text-success";
   };
 
   return (
     <div
-      className="container d-flex justify-content-center align-items-center"
+      className="d-flex justify-content-center align-items-center"
       style={{ minHeight: "100vh" }}
     >
       <div
-        className="card shadow p-4 d-flex flex-column justify-content-between"
-        style={{ maxWidth: "400px", width: "100%", height: "750px" }}
+        className="card shadow p-4"
+        style={{ width: "100%", maxWidth: "480px", borderRadius: "12px" }}
       >
-        <h3 className="text-center mb-4 fw-bold">Crear Cuenta</h3>
+        <h2 className="text-center mb-4">Crear Cuenta</h2>
 
-        {/* ALERTA */}
-        <div
-          id="alertBox"
-          dangerouslySetInnerHTML={{ __html: alertMsg }}
-        ></div>
-
-        {/* Campo Nombre */}
-        <div className="mb-3">
-          <label className="form-label fw-bold">Nombre completo</label>
-          <input
-            type="text"
-            id="nombre"
-            className="form-control"
-            placeholder="Tu nombre"
-          />
-        </div>
-
-        {/* Campo Email */}
-        <div className="mb-3">
-          <label className="form-label fw-bold">Correo electrónico</label>
-          <input
-            type="email"
-            id="email"
-            className="form-control"
-            placeholder="ejemplo@gmail.com"
-          />
-        </div>
-
-        {/* Contraseña */}
-        <div className="mb-3">
-          <label className="form-label fw-bold">Contraseña</label>
-          <div className="input-group">
+        <form onSubmit={handleSubmit}>
+          {/* Nombre */}
+          <div className="mb-3">
+            <label className="form-label">Nombre Completo</label>
             <input
-              type={showPass1 ? "text" : "password"}
-              id="passwordRegister"
+              name="name"
+              type="text"
               className="form-control"
-              placeholder="Ingresa una contraseña"
+              value={form.name}
+              onChange={handleChange}
             />
-            <button
-              className="btn btn-outline-secondary-bg"
-              type="button"
-              onClick={() => setShowPass1(!showPass1)}
-            >
-              👁️
-            </button>
           </div>
-        </div>
 
-        {/* Confirmar Contraseña */}
-        <div className="mb-4">
-          <label className="form-label fw-bold">Confirmar contraseña</label>
-          <div className="input-group">
+          {/* Email */}
+          <div className="mb-3">
+            <label className="form-label">Correo electrónico</label>
             <input
-              type={showPass2 ? "text" : "password"}
-              id="passwordConfirm"
+              name="email"
+              type="email"
               className="form-control"
-              placeholder="Repite la contraseña"
+              value={form.email}
+              onChange={handleChange}
             />
-            <button
-              className="btn btn-outline-secondary-bg"
-              type="button"
-              onClick={() => setShowPass2(!showPass2)}
-            >
-              👁️
-            </button>
           </div>
-        </div>
 
-        {/* Botón Registrar */}
-        <button
-          className="btn btn-primary w-100 mb-2"
-          onClick={handleRegister}
-        >
-          Registrarse
-        </button>
+          {/* Contraseña */}
+          <div className="mb-3">
+            <label className="form-label">Contraseña</label>
+            <div className="input-group">
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                className="form-control"
+                value={form.password}
+                onChange={handleChange}
+              />
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                <i
+                  className={showPassword ? "bi bi-eye-slash" : "bi bi-eye"}
+                  style={{ fontSize: "1.2rem" }}
+                ></i>
+              </button>
+            </div>
 
-        {/* Botón Google */}
-        <button className="btn btn-outline-Emphasis w-100 mb-3">
-          <img
-            src="https://rotulosmatesanz.com/wp-content/uploads/2017/09/2000px-Google_G_Logo.svg_.png"
-            width="20"
-            className="me-2"
-          />
-          Registrarse con Google
-        </button>
+            {form.password && (
+              <small className={strengthColor()}>
+                Fortaleza: {passwordStrength()}
+              </small>
+            )}
+          </div>
 
-        {/* Enlace login */}
-        <div className="text-center">
-         <Link to="/login">¿Ya tienes una cuenta? Inicia sesión</Link>
+          {/* Repetir contraseña */}
+          <div className="mb-4">
+            <label className="form-label">Repetir Contraseña</label>
+            <input
+              name="repeatPassword"
+              type="password"
+              className="form-control"
+              value={form.repeatPassword}
+              onChange={handleChange}
+            />
+
+            {form.repeatPassword &&
+              form.password !== form.repeatPassword && (
+                <small className="text-danger">Las contraseñas no coinciden.</small>
+              )}
+          </div>
+
+          {/* Botón */}
+          <button
+            type="submit"
+            className="btn btn-primary w-100"
+            disabled={
+              !form.name ||
+              !form.email ||
+              !form.password ||
+              !form.repeatPassword
+            }
+          >
+            Registrarse
+          </button>
+        </form>
+
+        {/* VOLVER AL LOGIN */}
+        <div className="text-center mt-3">
+          <Link to="/" className="text-decoration-none">
+            <i className="bi bi-arrow-left"></i> Volver al Login
+          </Link>
         </div>
       </div>
     </div>
   );
 }
 
-export default Loginpage;
+export default RegisterPage;

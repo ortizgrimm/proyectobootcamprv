@@ -1,106 +1,140 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
-function Loginpage() {
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [alertMessage, setAlertMessage] = useState(null);
-  const [alertType, setAlertType] = useState("");
+// Firebase
+import { auth } from "../../firebase";
+import {
+  verifyPasswordResetCode,
+  confirmPasswordReset,
+} from "firebase/auth";
 
-  const [showPass1, setShowPass1] = useState(false);
-  const [showPass2, setShowPass2] = useState(false);
+function ResetPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const handleSave = () => {
-    setAlertMessage(null);
+  // Token que viene por URL
+  const oobCode = searchParams.get("oobCode");
 
-    if (!newPassword.trim() || !confirmPassword.trim()) {
-      setAlertType("danger");
-      setAlertMessage("⚠️ Todos los campos son obligatorios.");
+  const [isValidCode, setIsValidCode] = useState(false);
+  const [email, setEmail] = useState("");
+
+  const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
+
+  // Validar token al cargar la página
+  useEffect(() => {
+    async function checkCode() {
+      try {
+        const emailFromCode = await verifyPasswordResetCode(auth, oobCode);
+        setEmail(emailFromCode);
+        setIsValidCode(true);
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Enlace inválido o vencido",
+          text: "Solicita nuevamente la recuperación.",
+        });
+        navigate("/forgot");
+      }
+    }
+
+    checkCode();
+  }, [oobCode, navigate]);
+
+  // Enviar nueva contraseña
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+
+    if (!password || !repeatPassword) {
+      Swal.fire({
+        icon: "warning",
+        title: "Campos vacíos",
+        text: "Debes ingresar ambas contraseñas.",
+      });
       return;
     }
 
-    if (newPassword.length < 6) {
-      setAlertType("danger");
-      setAlertMessage("⚠️ La contraseña debe tener al menos 6 caracteres.");
+    if (password.length < 6) {
+      Swal.fire({
+        icon: "error",
+        title: "Contraseña muy corta",
+        text: "Debe tener al menos 6 caracteres.",
+      });
       return;
     }
 
-    if (newPassword !== confirmPassword) {
-      setAlertType("danger");
-      setAlertMessage("❌ Las contraseñas no coinciden.");
+    if (password !== repeatPassword) {
+      Swal.fire({
+        icon: "error",
+        title: "Contraseñas no coinciden",
+        text: "Por favor verifica la contraseña.",
+      });
       return;
     }
 
-    setAlertType("success");
-    setAlertMessage("✔ Tu contraseña ha sido actualizada correctamente.");
+    try {
+      await confirmPasswordReset(auth, oobCode, password);
+
+      Swal.fire({
+        icon: "success",
+        title: "Contraseña actualizada",
+        text: "Ahora puedes iniciar sesión.",
+        timer: 2500,
+        showConfirmButton: false,
+      });
+
+      navigate("/");
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message,
+      });
+    }
   };
 
+  if (!isValidCode) return null; // mientras verifica
+
   return (
-    <div
-       className="d-flex justify-content-center align-items-center"
-  style={{ minHeight: "100vh", backgroundColor: "white" }}
-    >
-      <div className="card shadow p-4" style={{ maxWidth: "400px", width: "100%" }}>
-        <h3 className="text-center mb-4 fw-bold">Restablecer Contraseña</h3>
+    <div className="container d-flex justify-content-center align-items-center vh-100">
+      <div className="card p-4 shadow" style={{ width: "380px" }}>
+        <h3 className="text-center mb-3">Restablecer Contraseña</h3>
 
-        {/* ALERTA */}
-        {alertMessage && (
-          <div className={`alert alert-${alertType}`}>{alertMessage}</div>
-        )}
+        <p className="text-muted text-center">Correo: <b>{email}</b></p>
 
-        {/* Nueva contraseña */}
-        <div className="mb-3">
-          <label className="form-label fw-bold">Nueva contraseña</label>
-          <div className="input-group">
+        <form onSubmit={handleResetPassword}>
+          <div className="mb-3">
+            <label className="form-label">Nueva contraseña</label>
             <input
-              type={showPass1 ? "text" : "password"}
+              type="password"
               className="form-control"
-              placeholder="Ingresa tu nueva contraseña"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="****"
             />
-            <button
-              type="button"
-              className="btn btn-outline-secondary-bg"
-              onClick={() => setShowPass1(!showPass1)}
-            >
-              👁️
-            </button>
           </div>
-        </div>
 
-        {/* Confirmar contraseña */}
-        <div className="mb-3">
-          <label className="form-label fw-bold">Confirmar contraseña</label>
-          <div className="input-group">
+          <div className="mb-3">
+            <label className="form-label">Confirmar contraseña</label>
             <input
-              type={showPass2 ? "text" : "password"}
+              type="password"
               className="form-control"
-              placeholder="Repite tu nueva contraseña"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              value={repeatPassword}
+              onChange={(e) => setRepeatPassword(e.target.value)}
+              placeholder="****"
             />
-            <button
-              type="button"
-              className="btn btn-outline-secondary-bg"
-              onClick={() => setShowPass2(!showPass2)}
-            >
-              👁️
-            </button>
           </div>
-        </div>
 
-        {/* Botón Guardar */}
-        <button className="btn btn-primary w-100 mb-3" onClick={handleSave}>
-          Guardar nueva contraseña
-        </button>
+          <button className="btn btn-primary w-100">Restablecer</button>
+        </form>
 
-        {/* Volver */}
-        <div className="text-center">
-          <a href="/login">Volver al inicio de sesión</a>
+        <div className="text-center mt-3">
+          <Link to="/" className="text-decoration-none">Volver al login</Link>
         </div>
       </div>
     </div>
   );
 }
 
-export default Loginpage;
+export default ResetPage;
